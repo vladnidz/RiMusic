@@ -57,11 +57,17 @@ fun Activity.maybeEnterPip() = when {
     }.onFailure(::logError).isSuccess
 }
 
-fun Activity.setAutoEnterPip(autoEnterIfPossible: Boolean) = if (isAtLeastAndroid12) setPictureInPictureParams(
-    PictureInPictureParams.Builder()
-        .setAutoEnterEnabled(autoEnterIfPossible)
-        .build()
-) else Unit
+fun Activity.setAutoEnterPip(autoEnterIfPossible: Boolean) {
+    if (isAtLeastAndroid12 && isPipSupported) {
+        runCatching {
+            setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .setAutoEnterEnabled(autoEnterIfPossible)
+                    .build()
+            )
+        }
+    }
+}
 
 fun Activity.setPipParams(
     rect: Rect,
@@ -70,19 +76,23 @@ fun Activity.setPipParams(
     autoEnterIfPossible: Boolean = false,
     block: PictureInPictureParams.Builder.() -> PictureInPictureParams.Builder = { this }
 ) {
-    if (isAtLeastAndroid8) setPictureInPictureParams(
-        PictureInPictureParams.Builder()
-            .block()
-            .setSourceRectHint(rect)
-            .setAspectRatio(Rational(targetNumerator, targetDenominator))
-            .let {
-                if (isAtLeastAndroid12) it
-                    .setAutoEnterEnabled(autoEnterIfPossible)
-                    .setSeamlessResizeEnabled(true)
-                else it
-            }
-            .build()
-    )
+    if (isAtLeastAndroid8 && isPipSupported) {
+        runCatching {
+            setPictureInPictureParams(
+                PictureInPictureParams.Builder()
+                    .block()
+                    .setSourceRectHint(rect)
+                    .setAspectRatio(Rational(targetNumerator, targetDenominator))
+                    .let {
+                        if (isAtLeastAndroid12) it
+                            .setAutoEnterEnabled(autoEnterIfPossible)
+                            .setSeamlessResizeEnabled(true)
+                        else it
+                    }
+                    .build()
+            )
+        }
+    }
 }
 
 fun Activity.maybeExitPip() = when {
