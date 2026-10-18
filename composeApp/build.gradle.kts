@@ -138,6 +138,10 @@ android {
         versionCode = 89
         versionName = "0.6.76"
 
+        ndk {
+            abiFilters.add("armeabi-v7a")
+        }
+
         // INIT ENVIRONMENT
         resValue(
             "string",
